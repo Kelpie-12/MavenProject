@@ -67,6 +67,11 @@ public record Car(
             return this;
         }
 
+        public Builder withPrice(BigDecimal price) {
+            this.price = price;
+            return this;
+        }
+
         public Builder withPrice(double price) {
             this.price = BigDecimal.valueOf(price);
             return this;
@@ -81,5 +86,4 @@ public record Car(
             return new Car(uniqueId, brand, model, releaseYear, price, color);
         }
     }
-
 }

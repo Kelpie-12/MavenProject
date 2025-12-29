@@ -1,9 +1,13 @@
 package org.example.car.aplication.gui;
 
+import org.example.car.aplication.Car;
 import org.example.car.aplication.CarFactory;
+import org.example.car.aplication.dao.CarDAO;
 
 import javax.swing.*;
 import java.awt.*;
+import java.sql.SQLException;
+import java.util.List;
 
 public class Window extends JFrame {
 
@@ -12,9 +16,20 @@ public class Window extends JFrame {
     public Window() {
         super();
         initializeFrame();
+        Runnable asyncTask = () -> {
+            try {
+                List<Car> carsFromDatabase = CarDAO.getAllCars();
 
-        CarFactory carFactory = new CarFactory();
-        carTableModel.addCars(carFactory.create());
+                carTableModel.clear();
+                carTableModel.addCars(carsFromDatabase);
+            } catch (SQLException exception) {
+                exception.printStackTrace();
+            }
+        };
+
+        new Thread(asyncTask).start();
+        // CarFactory carFactory = new CarFactory();
+        // carTableModel.addCars(carFactory.create());
     }
 
     private void initializeFrame() {
