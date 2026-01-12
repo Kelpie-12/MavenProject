@@ -1,51 +1,39 @@
 package org.example.car.aplication;
 
-import org.example.car.aplication.gui.Window;
+import org.example.car.aplication.config.AppConfiguration;
+import org.example.car.aplication.database.DataSource;
+import org.example.car.aplication.gui.window.MainWindow;
 
 import javax.swing.*;
-import java.awt.*;
-import java.sql.*;
-import java.util.List;
+import java.io.IOException;
 
 public class Main {
-    static void main(String[] args) {
-        //Car car=new Car(
-        //        CarBrand.Mersedec,
-        //        "cls",
-        //        2022,
-        //        1000.0,
-        //        Color.GREEN
-        //);
-        //Car car = Car.builder()
-        //        .setBrand(CarBrand.Mersedec)
-        //        .setModel("N/A")
-        //        .setYear(2024)
-        //        .setPrice(20)
-        //        .setColour(Color.GREEN)
-        //        .build();
-//
-        //CarFactory carFactory=new CarFactory();
-        //List<Car> cars=carFactory.create(10);
-        //System.out.println(car);
-        //cars.forEach(System.out::println);
+    private static final String APP_CONFIG_FILE_PATH = "app.properties";
 
-        //SwingUtilities.invokeLater(Window::new);
-        SwingUtilities.invokeLater(Window::new);
+    private static AppConfiguration appConfiguration;
+    private static DataSource dataSource;
 
+    static void main() {
+        try {
+            initialize();
+            SwingUtilities.invokeLater(MainWindow::new);
+        } catch (Exception exception) {
+            System.err.println("Failed to run program: " + exception.getMessage());
+        }
+    }
 
+    private static void initialize() throws IOException {
+        appConfiguration = new AppConfiguration(APP_CONFIG_FILE_PATH);
+        appConfiguration.load();
 
+        dataSource = new DataSource(appConfiguration);
+    }
 
-        //    String connectionString = "jdbc:sqlite:cars.db";
-        //    try (Connection connection = DriverManager.getConnection(connectionString); Statement statement=connection.createStatement())
-        //    {
-        //        statement.execute("""
-        //                create table if not exists Cars(id integer primary key autoincrement,
-        //                brand text not null);
-        //                """);
-        //        System.out.println("Connect!");
+    public static AppConfiguration getAppConfiguration() {
+        return appConfiguration;
+    }
 
-        //    } catch (SQLException e) {
-        //        e.printStackTrace();
-        //    }
+    public static DataSource getDataSource() {
+        return dataSource;
     }
 }
