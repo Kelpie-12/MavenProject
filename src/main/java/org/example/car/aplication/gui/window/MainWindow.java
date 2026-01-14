@@ -3,9 +3,12 @@ package org.example.car.aplication.gui.window;
 import org.example.car.aplication.Car;
 import org.example.car.aplication.dao.CarDAO;
 import org.example.car.aplication.gui.CarTableModel;
+import org.example.car.aplication.Main;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -16,20 +19,31 @@ public class MainWindow extends JFrame {
     public MainWindow() {
         super();
         initializeFrame();
-        Runnable asyncTask = () -> {
+
+        Main.getAsyncTaskManager().doAsync(() -> {
             try {
-                List<Car> carsFromDatabase = CarDAO.getAllCars();
-
-                carTableModel.clear();
-                carTableModel.addCars(carsFromDatabase);
-            } catch (SQLException exception) {
-                exception.printStackTrace();
+                CarDAO.validateTable();
+                refreshData();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
             }
-        };
+        });
+    }
 
-        new Thread(asyncTask).start();
-        // CarFactory carFactory = new CarFactory();
-        // carTableModel.addCars(carFactory.create());
+    public void refreshData() {
+        try {
+            List<Car> carsFromDatabase = CarDAO.getAllCars();
+
+            carTableModel.clear();
+            carTableModel.addCars(carsFromDatabase);
+        } catch (SQLException exception) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    exception.getMessage(),
+                    "Failed to refresh cars data",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
     }
 
     private void initializeFrame() {
@@ -46,6 +60,14 @@ public class MainWindow extends JFrame {
 
         initializeContent();
         setVisible(true);
+
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                Main.getAsyncTaskManager().close();
+                dispose();
+            }
+        });
     }
 
     private void initializeContent() {
@@ -67,3 +89,4 @@ public class MainWindow extends JFrame {
         add(carTableScrollPane);
     }
 }
+

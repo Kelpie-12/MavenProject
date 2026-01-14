@@ -6,6 +6,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 public record Car(
+        long id,
         UUID uniqueId,
         CarBrand brand,
         String model,
@@ -19,6 +20,9 @@ public record Car(
         Objects.requireNonNull(uniqueId, "Car unique id must not be null");
         Objects.requireNonNull(brand, "Car brand must not be null");
         Objects.requireNonNull(model, "Car model must not be null");
+
+        if (id <= 0)
+            throw new IllegalArgumentException("Illegal car id");
 
         if (model.isBlank())
             throw new IllegalArgumentException("Car model must not be empty");
@@ -38,6 +42,7 @@ public record Car(
 
     public static class Builder {
 
+        private long id;
         private UUID uniqueId;
         private CarBrand brand;
         private String model;
@@ -46,6 +51,11 @@ public record Car(
         private Color color;
 
         private Builder() {}
+
+        public Builder withId(long id) {
+            this.id = id;
+            return this;
+        }
 
         public Builder withUniqueId(UUID uniqueId) {
             this.uniqueId = uniqueId;
@@ -83,7 +93,7 @@ public record Car(
         }
 
         public Car build() {
-            return new Car(uniqueId, brand, model, releaseYear, price, color);
+            return new Car(id, uniqueId, brand, model, releaseYear, price, color);
         }
     }
 }

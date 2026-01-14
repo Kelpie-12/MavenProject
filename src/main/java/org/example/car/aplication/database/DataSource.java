@@ -9,18 +9,19 @@ import java.sql.SQLException;
 public class DataSource {
 
     private final String url;
-    private final Credentials credentials;
+   private final Credentials credentials;
 
     public DataSource(AppConfiguration appConfiguration) {
-        String hostName = appConfiguration.getString("database.hostname", "localhost");
-        int port = appConfiguration.getInt("database.port", 1512);
-        String serviceName = appConfiguration.getString("database.service.name", "XEPDB1");
+      String hostName = appConfiguration.getString("database.hostname", "localhost");
+      int port = appConfiguration.getInt("database.port", 5432);
+        String database = appConfiguration.getString("database.name", "postgres");
 
-        this.url = "jdbc:oracle:thin:@" + hostName + ":" + port + "/" + serviceName;
+        this.url = "jdbc:postgesql://"+hostName+":"+port+"/"+database;
         this.credentials = new Credentials(appConfiguration);
     }
 
     public Connection createConnection() throws SQLException {
-        return DriverManager.getConnection(url, credentials.userName(), credentials.password());
+        return DriverManager.getConnection(url,credentials.userName(),credentials.password());
     }
 }
+

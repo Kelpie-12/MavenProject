@@ -3,6 +3,8 @@ package org.example.car.aplication.gui.window;
 import org.example.car.aplication.Car;
 import org.example.car.aplication.CarBrand;
 import org.example.car.aplication.dao.CarDAO;
+import org.example.car.aplication.Main;
+
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,14 +14,14 @@ import java.util.UUID;
 
 public class AddCarDialog extends JDialog {
 
-    private final JFrame parentFrame;
+    private final MainWindow parent;
 
     private Color selectedCarColor = Color.WHITE;
 
-    public AddCarDialog(JFrame parentFrame) {
-        super(parentFrame, true);
+    public AddCarDialog(MainWindow parent) {
+        super(parent, true);
 
-        this.parentFrame = parentFrame;
+        this.parent = parent;
         initializeDialog();
     }
 
@@ -32,7 +34,7 @@ public class AddCarDialog extends JDialog {
         setPreferredSize(preferredSize);
 
         pack();
-        setLocationRelativeTo(parentFrame);
+        setLocationRelativeTo(parent);
 
         initializeContent();
         setVisible(true);
@@ -48,6 +50,8 @@ public class AddCarDialog extends JDialog {
 
         JTextField uniqueIdInputField = new JTextField();
         uniqueIdInputField.setBounds(10, 40, 564, 25);
+        uniqueIdInputField.setText(UUID.randomUUID().toString());
+        uniqueIdInputField.setEditable(false);
 
         add(uniqueIdInputField);
 
@@ -133,25 +137,36 @@ public class AddCarDialog extends JDialog {
         addCarButton.setBounds(10, 400, 564, 25);
 
         addCarButton.addActionListener(actionEvent -> {
-
-            CarBrand[] carBrands = CarBrand.values();
-
-            Car newCar = new Car(
-                    new UUID(Integer.parseInt(uniqueIdInputField.getText()), 0L),
-                    carBrands[brandComboBox.getSelectedIndex()],
-                    modelInputField.getText(),
-                    Integer.parseInt(releaseYearSpinner.getValue().toString()),
-                    new BigDecimal(Double.parseDouble(carPriceInputField.getText())),
-                    new Color(selectedCarColor.getRGB())
-            );
-
             try {
-                CarDAO.addNewCar(newCar);
-            } catch (Exception e) {
-                System.out.println(e);
-            }
-        dispose();
+                UUID uniqueId = UUID.fromString(uniqueIdInputField.getText());
+                CarBrand brand = (CarBrand) brandComboBox.getSelectedItem();
+                String model = modelInputField.getText();
+                int releaseYear = (Integer) releaseYearSpinner.getValue();
+                BigDecimal price = new BigDecimal(carPriceInputField.getText());
+                Color color = selectedCarColor;
 
+                Car car = Car.builder()
+                        .withId(1)
+                        .withUniqueId(uniqueId)
+                        .withBrand(brand)
+                        .withModel(model)
+                        .withReleaseYear(releaseYear)
+                        .withPrice(price)
+                        .withColor(color)
+                        .build();
+
+                CarDAO.addCar(car);
+                dispose();
+
+                Main.getAsyncTaskManager().doAsync(parent::refreshData);
+            } catch (Exception exception) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        exception.getMessage(),
+                        "Failed to add a new car",
+                        JOptionPane.ERROR_MESSAGE
+                );
+            }
         });
 
         add(addCarButton);

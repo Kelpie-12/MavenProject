@@ -60,7 +60,7 @@ public class CarTableModel extends AbstractTableModel {
         Car car = cars.get(rowIndex);
 
         return switch (columnIndex) {
-            case 0 -> rowIndex + 1;
+            case 0 -> car.id();
             case 1 -> car.uniqueId();
             case 2 -> car.brand();
             case 3 -> car.model();
@@ -84,4 +84,3 @@ public class CarTableModel extends AbstractTableModel {
         );
     }
 }
-

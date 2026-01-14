@@ -13,23 +13,41 @@ import java.util.UUID;
 
 public class CarDAO {
 
+    public static void validateTable() throws SQLException {
+        try (Connection connection = Main.getDataSource().createConnection();
+             Statement statement = connection.createStatement()) {
+
+            statement.execute("""
+                CREATE TABLE IF NOT EXISTS `cars` (
+                    `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    `unique_id` TEXT NOT NULL,
+                    `brand` TEXT NOT NULL,
+                    `model` TEXT NOT NULL,
+                    `release_year` INTEGER NOT NULL,
+                    `price` REAL NOT NULL,
+                    `color` TEXT NOT NULL
+                )
+            """);
+        }
+    }
+
     public static List<Car> getAllCars() throws SQLException {
         List<Car> cars = new ArrayList<>();
-        String sql = "SELECT unique_id, brand, model, release_year, price, color FROM cars";
+        String sql = "SELECT id, unique_id, brand, model, release_year, price, color FROM cars";
 
         try (Connection connection = Main.getDataSource().createConnection();
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(sql)) {
 
             while (resultSet.next()) {
-
                 Car car = Car.builder()
-                        .withUniqueId(new UUID(resultSet.getInt("unique_id"),0L))
+                        .withId(resultSet.getLong("id"))
+                        .withUniqueId(UUID.fromString(resultSet.getString("unique_id")))
                         .withBrand(CarBrand.valueOf(resultSet.getString("brand")))
                         .withModel(resultSet.getString("model"))
                         .withReleaseYear(resultSet.getInt("release_year"))
                         .withPrice(resultSet.getBigDecimal("price"))
-                        .withColor(Color.decode(resultSet.getString("color")))
+                        .withColor(Color.decode("#" + resultSet.getString("color")))
                         .build();
 
                 cars.add(car);
@@ -39,28 +57,27 @@ public class CarDAO {
         return Collections.unmodifiableList(cars);
     }
 
-    public static void addNewCar(Car newCar) throws Exception{
-       // String sql = "insert into Cars(unique_id,brand,model,release_year,price,color) values("+newCar.uniqueId()+","+newCar.brand()+","+
-         //       newCar.model()+","+newCar.releaseYear()+","+newCar.price()+","+newCar.color()+")";
-        String sql="insert into Cars(unique_id,brand,model,release_year,price,color) values(?,?,?,?,?,?)";
-        try (Connection connection=Main.getDataSource().createConnection();
-             PreparedStatement  statement = connection.prepareStatement(sql);
-            ) {
+    public static void addCar(Car car) throws SQLException {
+        String sql = """
+            INSERT INTO `cars`
+                (`unique_id`, `brand`, `model`, `release_year`, `price`, `color`)
+            VALUES
+                (?, ?, ?, ?, ?, ?)
+        """;
 
-            statement.setString(1,newCar.uniqueId().toString());
-            statement.setString(2,newCar.brand().toString());
-            statement.setString(3,newCar.model());
-            statement.setString(4,newCar.releaseYear()+"");
-            statement.setString(5,newCar.price()+"");
-            statement.setString(6,newCar.color()+"");
+        try (Connection connection = Main.getDataSource().createConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 
+            preparedStatement.setString(1, car.uniqueId().toString());
+            preparedStatement.setString(2, car.brand().name());
+            preparedStatement.setString(3, car.model());
+            preparedStatement.setInt(4, car.releaseYear());
+            preparedStatement.setBigDecimal(5, car.price());
 
-            int rowsAffected = statement.executeUpdate();
+            String colorAsHex = String.format("%06X", 0xFFFFFF & car.color().getRGB());
+            preparedStatement.setString(6, colorAsHex);
 
-            if (rowsAffected > 0) {
-                System.out.println("Новая машина была добавлена!");
-            }
-
+            preparedStatement.execute();
         }
     }
 }
