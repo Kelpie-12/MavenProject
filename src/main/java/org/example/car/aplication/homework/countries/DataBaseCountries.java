@@ -17,8 +17,8 @@ public class DataBaseCountries {
         String hostName =  "localhost";
         int port =  6152;
         String database =  "postgres";
-        this.url = "jdbc:postgesql://" + hostName + ":" + port + "/" + database;
-        this.credentials = new Credentials("postgesql","12345");
+        this.url = "jdbc:postgresql://" + hostName + ":" + port + "/" + database;
+        this.credentials = new Credentials("postgres","12345");
     }
 
     public Connection createConnection() throws SQLException {
@@ -27,16 +27,16 @@ public class DataBaseCountries {
 
     public List<Countre> printAllCountries() throws SQLException{
         List<Countre> countres = new ArrayList<>();
-        String sql = "SELECT capital, population, \"name\" FROM public.countries ";
+        String sql = "SELECT * FROM public.countries; ";
 
         try (Connection connection = createConnection();
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(sql)){
             while (resultSet.next()) {
                 Countre countre=new Countre();
-                countre.setCapital(resultSet.getString(0));
-                countre.setPopulation(resultSet.getLong(1));
-                countre.setName(resultSet.getString(2));
+                countre.setCapital(resultSet.getString(1));
+                countre.setPopulation(resultSet.getLong(2));
+                countre.setName(resultSet.getString(3));
                 countres.add(countre);
             }
         }
@@ -48,8 +48,9 @@ public class DataBaseCountries {
             List<Countre> countres= countres=printAllCountries();
 
             for (int i = 0; i < countres.size(); i++) {
-                System.out.println("Страна"+countres.get(i).getName()+"Население "+countres.get(i).getPopulation()+"Столица "+countres.get(i).getCapital());
+                System.out.println("Страна -> "+countres.get(i).getName()+"; Население -> "+countres.get(i).getPopulation()+"; Столица -> "+countres.get(i).getCapital());
             }
+
         } catch (SQLException e) {
             System.out.println(e);
         }

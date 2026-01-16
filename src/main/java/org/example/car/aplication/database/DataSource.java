@@ -16,7 +16,7 @@ public class DataSource {
         int port = appConfiguration.getInt("database.port", 5432);
         String database = appConfiguration.getString("database.name", "postgres");
 
-        this.url = "jdbc:postgesql://" + hostName + ":" + port + "/" + database;
+        this.url = "jdbc:postgresql://" + hostName + ":" + port + "/" + database;
         this.credentials = new Credentials(appConfiguration);
     }
 
